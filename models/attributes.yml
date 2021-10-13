@@ -1,0 +1,354 @@
+Patient:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "genetic_vs_reported_results"
+          type: "varchar(30)"
+          required: false
+        - name: "tiering"
+          type: "varchar(20)"
+          required: false
+        - name: "participant_phenotypic_sex"
+          type: "varchar(20)"
+          required: false
+        - name: "participant_id"
+          type: "int(12)"
+          required: true
+        - name: "reported_phenotypic_sex"
+          type: "varchar(10)"
+          required: false
+        - name: "rare_diseases_family_id"
+          type: "varchar(15)"
+          required: true
+        - name: "plate_key"
+          type: "varchar(100)"
+          required: true
+        - name: "biological_relationship_to_proband"
+          type: "varchar(100)"
+          required: false
+        - name: "normalised_specific_disease"
+          type: "varchar(255)"
+          required: false
+        - name: "inferred_sex_karyotype"
+          type: "varchar(10)"
+          required: false
+        - name: "participant_type"
+          type: "varchar(15)"
+          required: true
+        - name: "genome"
+          type: "varchar(20)"
+          required: true
+        - name: "path"
+          type: "varchar(50)"
+          required: true
+        - name: "reported_karyotypic_sex"
+          type: "varchar(15)"
+          required: false
+        - name: "participant_ethnic_category"
+          type: "varchar(100)"
+          required: false
+        - name: "genome_build"
+          type: "varchar(12)"
+          required: true
+        - name: "_labkeyurl_plate_key"
+          type: "varchar(150)"
+          required: false
+        - name: "key"
+          type: "int(7)"
+          required: false
+    indices: ["normalised_specific_disease", "plate_key", "participant_id", "rare_diseases_family_id"]
+    foreign_keys: []
+    engine: InnoDB
+Interval:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "chrom"
+          type: "varchar(30)"
+          required: true
+        - name: "start"
+          type: "int(10) unsigned"
+          required: true
+        - name: "end"
+          type: "int(10) unsigned"
+          required: true
+        - name: "type"
+          type: "varchar(10)"
+          required: true
+        - name: "interval_id"
+          type: "varchar(100)"
+          required: true
+    indices: ["chrom", "start", "end", "type", "interval_id"]
+    foreign_keys: []
+    engine: InnoDB
+Group:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "type"
+          type: "ENUM('super', 'local')"
+          required: true
+          description: "super|local"
+        - name: "chrom"
+          type: "varchar(20)"
+          required: true
+        - name: "outer_start"
+          type: "int(10) unsigned"
+          required: true
+        - name: "outer_end"
+          type: "int(10) unsigned"
+          required: true
+        - name: "inner_start"
+          type: "int(10) unsigned"
+          required: true
+        - name: "inner_end"
+          type: "int(10) unsigned"
+          required: true
+        - name: "mean_start"
+          type: "int(10) unsigned"
+          required: true
+        - name: "mean_end"
+          type: "int(10) unsigned"
+          required: false
+        - name: "stdev_start"
+          type: "float"
+          required: false
+        - name: "stdev_end"
+          type: "float"
+          required: false
+        - name: "N_all"
+          type: "int(10)"
+          required: true
+        - name: "N_pass"
+          type: "int(10)"
+          required: true
+        - name: "group_id"
+          type: "varchar(100)"
+          required: true
+    indices: ["chrom", "inner_start", "inner_end", "outer_start", "outer_end", "type", "N_all", "N_pass", "group_id"]
+    foreign_keys: []
+    engine: InnoDB
+Gene:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "ensembl_id"
+          type: "varchar(20)"
+          required: true
+        - name: "symbol"
+          type: "varchar(50)"
+          description: "longest 22"
+          required: false
+        - name: "chrom"
+          type: "varchar(30)"
+          required: true
+        - name: "start"
+          type: "int(10)"
+          required: true
+        - name: "end"
+          type: "int(10)"
+          required: true
+    indices: ["ensembl_id", "symbol", "chrom", "start", "end"]
+    foreign_keys: []
+    engine: InnoDB
+        
+Patient_Interval:
+    columns:
+        - name: "id"
+          type: "int(12)"
+          required: false
+        - name: "patient_id"
+          type: "int(12)"
+          required: true
+        - name: "interval_id"
+          type: "varchar(100)"
+          required: true
+        - name: "filter"
+          type: "varchar(100)"
+          required: true
+          description: "longest is 48"
+        - name: "sv_id"
+          type: "varchar(80)"
+          required: true
+          description: "longest is 38"
+        - name: "source"
+          type: "ENUM('Canvas', 'Manta')"
+          required: true
+        - name: "genotype"
+          type: "ENUM('HOM', 'HET')"
+          required: false
+        - name: "CN"
+          type: "int(4) unsigned"
+          required: false
+          description: "Canvas called in GRCh38 doesn't give GT. They give CN instead."
+        - name: "is_duplicate"
+          type: "tinyint(1)"
+          required: false
+          description: "A participant_id might be sequenced more than once, and same interval from an individual might come from multiple files"
+          
+    indices: ["filter", "genotype", "is_duplicate", "CN"]
+    foreign_keys:
+        - key: patient_id
+          references: 
+              table: Patient
+              column: participant_id
+          cascade: ['DELETE', 'UPDATE']
+        - key: interval_id
+          references: 
+              table: Interval
+              column: interval_id
+          cascade: ['DELETE', 'UPDATE']
+    engine: InnoDB
+
+Interval_Group:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "interval_id"
+          type: "varchar(100)"
+          required: true
+        - name: "group_id"
+          type: "varchar(100)"
+          required: true
+    indices: []
+    foreign_keys:
+        - key: group_id
+          references: 
+              table: Group
+              column: group_id
+          cascade: ['DELETE', 'UPDATE']
+        - key: interval_id
+          references: 
+              table: Interval
+              column: interval_id
+          cascade: ['DELETE', 'UPDATE']
+    engine: InnoDB
+
+Interval_Gene:
+    columns:
+        - name: "id"
+          type: "int(12)"
+          required: false
+        - name: "interval_id"
+          type: "varchar(100)"
+          required: true
+        - name: "gene_id"
+          type: "varchar(20)"
+          required: true
+        - name: "at_bnd"
+          type: "tinyint(1)"
+          description: "MySQL's boolean is synonym of tinyint(1) anyway. It tells if a gene overlaps the boundaries of the interval"
+          required: false
+    indices: ["at_bnd"]
+    foreign_keys:
+        - key: gene_id
+          references: 
+              table: Gene
+              column: ensembl_id
+          cascade: ['DELETE', 'UPDATE']
+        - key: interval_id
+          references: 
+              table: Interval
+              column: interval_id
+          cascade: ['DELETE', 'UPDATE']
+    engine: InnoDB
+
+HPO:
+    columns:
+        - name: "id"
+          type: "int(8)"
+          required: false
+        - name: "hpo_id"
+          type: "int(7)"
+          required: true
+        - name: "name"
+          type: "varchar(255)"
+          required: true
+    indices: ["hpo_id", "name"]
+    foreign_keys: []
+    engine: InnoDB
+
+HPO_Gene:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "hpo_id"
+          type: "int(7)"
+          required: true
+        - name: "gene_id"
+          type: "varchar(20)"
+          required: true
+    indices: []
+    foreign_keys:
+        - key: gene_id
+          references: 
+              table: Gene
+              column: ensembl_id
+          cascade: ['DELETE', 'UPDATE']
+        - key: hpo_id
+          references: 
+              table: HPO
+              column: hpo_id
+          cascade: ['DELETE', 'UPDATE']
+    engine: InnoDB
+
+Patient_HPO:
+    columns:
+        - name: "id"
+          type: "int(10)"
+          required: false
+        - name: "patient_id"
+          type: "int(12)"
+          required: true
+        - name: "hpo_id"
+          type: "int(7)"
+          required: true
+    indices: []
+    foreign_keys:
+        - key: patient_id
+          references: 
+              table: Patient
+              column: participant_id
+          cascade: ['DELETE', 'UPDATE']
+        - key: hpo_id
+          references: 
+              table: HPO
+              column: hpo_id
+          cascade: ['DELETE', 'UPDATE']
+    engine: InnoDB
+
+Interval_Distance:
+    columns:
+        - name: "id"
+          type: "int(12)"
+          required: false
+        - name: "interval1_id"
+          type: "varchar(100)"
+          required: true
+        - name: "interval2_id"
+          type: "varchar(100)"
+          required: true
+        - name: "distance"
+          type: "float"
+          required: true
+          description: "if <0, then it is attended but not calculated"
+
+    indices: ["distance"]
+    foreign_keys:
+        - key: interval1_id
+          references: 
+              table: Interval
+              column: interval_id
+          cascade: ['DELETE', 'UPDATE']
+        - key: interval2_id
+          references: 
+              table: Interval
+              column: interval_id
+          cascade: ['DELETE', 'UPDATE']
+    engine: InnoDB
