@@ -1,7 +1,7 @@
 # SVRare
 
 Right now SVRare is adapted to be used in the Genomics England (GEL) research environment.
-The pipelines are written in Nextflow
+![scheme](https://github.com/Oxford-Eye/SVRare/raw/master/img/scheme.jpg)
 
 ## Import
 In the import folder, one can configure the `nextflow.config`, then run:
