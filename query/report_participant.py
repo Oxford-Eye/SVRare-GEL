@@ -247,7 +247,7 @@ class Report(object):
 
     def _get_rare_sv(self):
 
-        interval_sql = f"SELECT {','.join(self.interval_columns)} FROM (SELECT group_id FROM `Group` WHERE N_all < 100) G JOIN Interval_Group on G.group_id = Interval_Group.group_id JOIN (SELECT `Interval`.interval_id, chrom, type, start, end, count(*) as c from `Interval` JOIN Patient_Interval ON `Interval`.interval_id = Patient_Interval.interval_id where chrom = 'chr2' GROUP BY `Interval`.interval_id having c < 50) ip ON ip.interval_id = Interval_Group.interval_id JOIN (SELECT interval_id as ii, filter, genotype, CN, sv_id FROM Patient_Interval WHERE patient_id = %s and is_duplicate = 0) pi ON ip.interval_id = ii"
+        interval_sql = f"SELECT {','.join(self.interval_columns)} FROM (SELECT group_id FROM `Group` WHERE N_all < 100) G JOIN Interval_Group on G.group_id = Interval_Group.group_id JOIN (SELECT `Interval`.interval_id, chrom, type, start, end, count(*) as c from `Interval` JOIN Patient_Interval ON `Interval`.interval_id = Patient_Interval.interval_id GROUP BY `Interval`.interval_id having c < 50) ip ON ip.interval_id = Interval_Group.interval_id JOIN (SELECT interval_id as ii, filter, genotype, CN, sv_id FROM Patient_Interval WHERE patient_id = %s and is_duplicate = 0) pi ON ip.interval_id = ii"
         seen = set()
         interval_cur = self.conn.cursor()
         interval_cur.execute(interval_sql, (self.family.proband,))
@@ -257,8 +257,6 @@ class Report(object):
             interval = dict(zip(self.interval_columns, interval_row))
             interval['interval_id'] = interval['ip.interval_id']
             interval['chrom'] = interval['ip.chrom']
-            if interval['interval_id'] != 'chr2-110116103-110226292-LOSS':
-                continue
             interval['type'] = interval['ip.type']
             if interval['interval_id'] in seen:
                 continue
@@ -306,12 +304,9 @@ class Report(object):
                 if query_interval['patient_id'] == self.family.proband:
                     seen.add(query_interval['interval_id'])
                 interval_groups[query_interval['patient_id']].append(query_interval)
-            print(C.most_common())
 
             core_cur.close()
             interval['Ns'] = self._get_Ns(interval_groups)
-            print(interval)
-            sys.exit()
             if interval['Ns']['N_else'] <= self.N_else:
                 out_row = self._get_out_row(interval, interval_groups)
                 yield out_row
