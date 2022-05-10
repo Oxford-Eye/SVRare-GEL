@@ -189,8 +189,12 @@ Patient_Interval:
           type: "tinyint(1)"
           required: false
           description: "A participant_id might be sequenced more than once, and same interval from an individual might come from multiple files"
+        - name: "igv_real"
+          type: "tinyint(1)"
+          required: false
+          description: "user input to determine if a structural variant looks real in IGV"
           
-    indices: ["filter", "genotype", "is_duplicate", "CN"]
+    indices: ["filter", "genotype", "is_duplicate", "CN", "igv_real"]
     foreign_keys:
         - key: patient_id
           references: 
