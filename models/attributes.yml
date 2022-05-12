@@ -193,8 +193,12 @@ Patient_Interval:
           type: "tinyint(1)"
           required: false
           description: "user input to determine if a structural variant looks real in IGV"
+        - name: "pathogenicity"
+          type: "int(2)"
+          required: false
+          description: "scale of likelihood of SV being pathogenic"
           
-    indices: ["filter", "genotype", "is_duplicate", "CN", "igv_real"]
+    indices: ["filter", "genotype", "is_duplicate", "CN", "igv_real", "pathogenicity"]
     foreign_keys:
         - key: patient_id
           references: 
